@@ -7,6 +7,7 @@ import spock.lang.Unroll
 import static com.shinyhut.vernacular.protocol.messages.SecurityType.MS_LOGON_2
 import static com.shinyhut.vernacular.protocol.messages.SecurityType.NONE
 import static com.shinyhut.vernacular.protocol.messages.SecurityType.VNC
+import static com.shinyhut.vernacular.protocol.messages.SecurityType.RA2NE
 
 class ServerSecurityTypeTest extends Specification {
 
@@ -16,13 +17,13 @@ class ServerSecurityTypeTest extends Specification {
         def input = new ByteArrayInputStream([0x00, 0x00, 0x00, securityType.code] as byte[])
 
         when:
-        def message = ServerSecurityType.decode(input)
+        def decodedSecurityType = ServerSecurityType.decode(input)
 
         then:
-        message.securityType == securityType
+        decodedSecurityType == securityType.code
 
         where:
-        securityType << [NONE, VNC, MS_LOGON_2]
+        securityType << [NONE, VNC, RA2NE, MS_LOGON_2]
     }
 
     def "should throw an exception if the response contains an error message"() {

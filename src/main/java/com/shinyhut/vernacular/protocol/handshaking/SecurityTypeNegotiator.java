@@ -27,7 +27,7 @@ public class SecurityTypeNegotiator {
         }
     }
 
-    private static SecurityHandler resolve(List<Integer> securityTypes) throws  VncException {
+    private static SecurityHandler resolve(List<Integer> securityTypes) throws VncException {
         if (securityTypes.contains(NONE.getCode())) {
             return new NoSecurityHandler();
         } else if (securityTypes.contains(VNC.getCode())) {

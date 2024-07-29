@@ -1,37 +1,73 @@
 package com.shinyhut.vernacular.utils;
 
-import lombok.SneakyThrows;
-
-import javax.crypto.Cipher;
 import java.security.KeyFactory;
 import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import javax.crypto.Cipher;
+import com.shinyhut.vernacular.client.exceptions.UnexpectedVncException;
+import com.shinyhut.vernacular.client.exceptions.VncException;
 
-public class CryptoUtils {
+public class CryptoUtils
+{
 
-    @SneakyThrows
-    public static MessageDigest sha1() {
-        return MessageDigest.getInstance("SHA-1");
-    }
+   public static MessageDigest sha1() throws VncException
+   {
+      try
+      {
+         return MessageDigest.getInstance("SHA-1");
+      }
+      catch(NoSuchAlgorithmException e)
+      {
+         throw new UnexpectedVncException(e);
+      }
+   }
 
+   public static MessageDigest sha256() throws VncException
+   {
+      try
+      {
+         return MessageDigest.getInstance("SHA-256");
+      }
+      catch(NoSuchAlgorithmException e)
+      {
+         throw new UnexpectedVncException(e);
+      }
+   }
 
-    @SneakyThrows
-    public static MessageDigest sha256() {
-        return MessageDigest.getInstance("SHA-256");
-    }
+   public static KeyPairGenerator rsaKeyPairGenerator() throws VncException
+   {
+      try
+      {
+         return KeyPairGenerator.getInstance("RSA");
+      }
+      catch(NoSuchAlgorithmException e)
+      {
+         throw new UnexpectedVncException(e);
+      }
+   }
 
-    @SneakyThrows
-    public static KeyPairGenerator rsaKeyPairGenerator() {
-        return KeyPairGenerator.getInstance("RSA");
-    }
+   public static KeyFactory rsaKeyFactory() throws VncException
+   {
+      try
+      {
+         return KeyFactory.getInstance("RSA");
+      }
+      catch(NoSuchAlgorithmException e)
+      {
+         throw new UnexpectedVncException(e);
+      }
+   }
 
-    @SneakyThrows
-    public static KeyFactory rsaKeyFactory() {
-        return KeyFactory.getInstance("RSA");
-    }
-
-    @SneakyThrows
-    public static Cipher rsaEcbPkcs1PaddingCipher() {
-        return Cipher.getInstance("RSA/ECB/PKCS1Padding");
-    }
+   public static Cipher rsaEcbPkcs1PaddingCipher() throws VncException
+   {
+      try
+      {
+         return Cipher.getInstance("RSA/ECB/PKCS1Padding");
+      }
+      catch(Exception e)
+      {
+         throw new UnexpectedVncException(e);
+      }
+   }
 }

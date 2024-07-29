@@ -1,12 +1,9 @@
 package com.shinyhut.vernacular.protocol.messages;
 
-import lombok.Getter;
-
 import java.util.Optional;
 
 import static java.util.Arrays.stream;
 
-@Getter
 public enum SecurityType {
 
     NONE(1, "None"),
@@ -23,7 +20,17 @@ public enum SecurityType {
         this.name = name;
     }
 
-    public static Optional<SecurityType> resolve(int code) {
+    public int getCode()
+   {
+      return code;
+   }
+
+   public String getName()
+   {
+      return name;
+   }
+
+   public static Optional<SecurityType> resolve(int code) {
         return stream(values()).filter(s -> s.code == code).findFirst();
     }
 }

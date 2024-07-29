@@ -3,8 +3,9 @@ package com.shinyhut.vernacular.client.exceptions;
 import static java.lang.String.format;
 
 public class UnsupportedProtocolVersionException extends VncException {
+   private static final long serialVersionUID = 1L;
 
-    private final int serverMajor;
+   private final int serverMajor;
     private final int serverMinor;
     private final int requiredMajor;
     private final int requiredMinor;

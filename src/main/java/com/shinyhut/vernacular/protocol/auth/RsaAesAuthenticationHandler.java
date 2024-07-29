@@ -1,5 +1,26 @@
 package com.shinyhut.vernacular.protocol.auth;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.MessageDigest;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.SecureRandom;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.RSAPublicKeySpec;
+import java.util.Arrays;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 import com.shinyhut.vernacular.client.VncSession;
 import com.shinyhut.vernacular.client.exceptions.SecurityTypeFailedException;
 import com.shinyhut.vernacular.client.exceptions.VncException;
@@ -8,22 +29,6 @@ import com.shinyhut.vernacular.utils.AesEaxInputStream;
 import com.shinyhut.vernacular.utils.AesEaxOutputStream;
 import com.shinyhut.vernacular.utils.ByteUtils;
 import com.shinyhut.vernacular.utils.CryptoUtils;
-import lombok.SneakyThrows;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import java.io.*;
-import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.security.*;
-import java.security.interfaces.RSAPublicKey;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.RSAPublicKeySpec;
-import java.util.Arrays;
-
-import static com.shinyhut.vernacular.protocol.messages.SecurityType.RA2NE;
 
 public class RsaAesAuthenticationHandler implements SecurityHandler {
 
@@ -50,11 +55,11 @@ public class RsaAesAuthenticationHandler implements SecurityHandler {
     private VncSession session;
     private final int authCode;
 
-    public static RsaAesAuthenticationHandler RA2(int authCode) {
+    public static RsaAesAuthenticationHandler RA2(int authCode) throws VncException {
         return new RsaAesAuthenticationHandler(128, CryptoUtils.sha1(), authCode);
     }
 
-    public static RsaAesAuthenticationHandler RA2_256(int authCode) {
+    public static RsaAesAuthenticationHandler RA2_256(int authCode) throws VncException {
         return new RsaAesAuthenticationHandler(256, CryptoUtils.sha256(), authCode);
     }
 

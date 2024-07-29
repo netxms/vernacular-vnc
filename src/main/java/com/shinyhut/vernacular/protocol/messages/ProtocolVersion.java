@@ -1,17 +1,17 @@
 package com.shinyhut.vernacular.protocol.messages;
 
-import com.shinyhut.vernacular.client.exceptions.HandshakingFailedException;
-import com.shinyhut.vernacular.client.exceptions.InvalidMessageException;
-import com.shinyhut.vernacular.client.exceptions.UnexpectedVncException;
-import com.shinyhut.vernacular.client.exceptions.VncException;
-
-import java.io.*;
+import static java.lang.Integer.parseInt;
+import static java.lang.String.format;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static java.lang.Integer.parseInt;
-import static java.lang.String.format;
+import com.shinyhut.vernacular.client.exceptions.InvalidMessageException;
+import com.shinyhut.vernacular.client.exceptions.VncException;
 
 public class ProtocolVersion implements Encodable {
 

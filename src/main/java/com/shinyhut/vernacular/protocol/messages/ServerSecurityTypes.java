@@ -1,14 +1,11 @@
 package com.shinyhut.vernacular.protocol.messages;
 
-import com.shinyhut.vernacular.client.exceptions.HandshakingFailedException;
-
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.shinyhut.vernacular.protocol.messages.SecurityType.resolve;
+import com.shinyhut.vernacular.client.exceptions.HandshakingFailedException;
 
 public class ServerSecurityTypes {
 

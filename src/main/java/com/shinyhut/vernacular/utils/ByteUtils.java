@@ -1,9 +1,7 @@
 package com.shinyhut.vernacular.utils;
 
-import java.math.BigInteger;
-import java.util.Arrays;
-
 import static java.lang.System.arraycopy;
+import java.math.BigInteger;
 
 public class ByteUtils {
 
