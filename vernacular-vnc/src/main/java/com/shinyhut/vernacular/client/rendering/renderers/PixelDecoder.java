@@ -49,15 +49,6 @@ public class PixelDecoder {
         return new Pixel(red, green, blue);
     }
 
-    public int decodeColor(int index)
-    {
-       ColorMapEntry color = Optional.ofNullable(colorMap.get(Long.valueOf(index))).orElse(BLACK);
-       int red = shrink(color.getRed());
-       int green = shrink(color.getGreen());
-       int blue = shrink(color.getBlue());
-       return (red << 24) | (green << 16) | blue;
-    }
-
     private static int stretch(int value, int max) {
         return max == 255 ? value : (int) (value * ((double) 255 / max));
     }

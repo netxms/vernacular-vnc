@@ -6,6 +6,8 @@ import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
+import java.util.Optional;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 import javax.imageio.ImageIO;
@@ -13,6 +15,7 @@ import com.shinyhut.vernacular.client.exceptions.InvalidTightEncodingException;
 import com.shinyhut.vernacular.client.exceptions.UnexpectedVncException;
 import com.shinyhut.vernacular.client.exceptions.VncException;
 import com.shinyhut.vernacular.client.rendering.ImageBuffer;
+import com.shinyhut.vernacular.protocol.messages.ColorMapEntry;
 import com.shinyhut.vernacular.protocol.messages.PixelFormat;
 import com.shinyhut.vernacular.protocol.messages.Rectangle;
 
@@ -27,8 +30,10 @@ public class TightRenderer implements Renderer
 
    private static final int MIN_TO_COMPRESS = 12;
 
+   private static final ColorMapEntry BLACK = new ColorMapEntry(0, 0, 0);
+
    private PixelFormat pixelFormat;
-   private PixelDecoder pixelDecoder;
+   private Map<Long, ColorMapEntry> colorMap;
    private int redShift;
    private int greenShift;
    private int blueShift;
@@ -37,10 +42,10 @@ public class TightRenderer implements Renderer
    private int blueMax;
    private Inflater[] inflaters = new Inflater[4];
 
-   public TightRenderer(PixelFormat pixelFormat, PixelDecoder pixelDecoder)
+   public TightRenderer(PixelFormat pixelFormat, Map<Long, ColorMapEntry> colorMap)
    {
       this.pixelFormat = pixelFormat;
-      this.pixelDecoder = pixelDecoder;
+      this.colorMap = colorMap;
 
       redShift = pixelFormat.getRedShift();
       greenShift = pixelFormat.getGreenShift();
@@ -94,7 +99,7 @@ public class TightRenderer implements Renderer
       int color;
       if (pixelFormat.getBytesPerPixel() == 1)
       {
-         color = pixelDecoder.decodeColor(dataInput.readUnsignedByte());
+         color = lookupColor(dataInput.readUnsignedByte());
       }
       else if (pixelFormat.getBytesPerPixel() == 2)
       {
@@ -239,7 +244,7 @@ public class TightRenderer implements Renderer
             {
                for(int x = 0, dx = rect.getX(); x < rect.getWidth(); x++, dx++)
                {
-                  destination.set(dx, dy, pixelDecoder.decodeColor(data[i++] & 0xFF));
+                  destination.set(dx, dy, lookupColor(data[i++] & 0xFF));
                }
             }
          }
@@ -392,7 +397,7 @@ public class TightRenderer implements Renderer
    private void read8BitPalette(DataInput dataInput, int[] palette, int numColors) throws IOException
    {
       for(int i = 0; i < numColors; i++)
-         palette[i] = pixelDecoder.decodeColor(dataInput.readUnsignedByte());
+         palette[i] = lookupColor(dataInput.readUnsignedByte());
    }
 
    /**
@@ -407,5 +412,31 @@ public class TightRenderer implements Renderer
       int g = ((rgb16 >> greenShift) & greenMax) * 255 / greenMax;
       int b = ((rgb16 >> blueShift) & blueMax) * 255 / blueMax;
       return (r << 16) | (g << 8) | b;
+   }
+
+   /**
+    * Lookup color in color map by index.
+    *
+    * @param index color index
+    * @return RGB color
+    */
+   private int lookupColor(int index)
+   {
+      ColorMapEntry color = Optional.ofNullable(colorMap.get(Long.valueOf(index))).orElse(BLACK);
+      int red = shrink(color.getRed());
+      int green = shrink(color.getGreen());
+      int blue = shrink(color.getBlue());
+      return (red << 16) | (green << 8) | blue;
+   }
+
+   /**
+    * Shrink color map value
+    *
+    * @param colorMapValue color map value for single color
+    * @return value in range 0..255
+    */
+   private static int shrink(int colorMapValue)
+   {
+      return (int)Math.round(((double)colorMapValue) / 257);
    }
 }

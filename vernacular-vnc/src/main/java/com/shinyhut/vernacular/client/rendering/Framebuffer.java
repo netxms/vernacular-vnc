@@ -33,7 +33,7 @@ public class Framebuffer {
         renderers.put(RRE, new RRERenderer(pixelDecoder, session.getPixelFormat()));
         renderers.put(HEXTILE, new HextileRenderer(rawRenderer, pixelDecoder, session.getPixelFormat()));
         renderers.put(ZLIB, new ZLibRenderer(rawRenderer));
-        renderers.put(TIGHT, new TightRenderer(session.getPixelFormat(), pixelDecoder));
+        renderers.put(TIGHT, new TightRenderer(session.getPixelFormat(), colorMap));
         cursorRenderer = new CursorRenderer(rawRenderer);
 
         frame = new ImageBuffer(session.getFramebufferWidth(), session.getFramebufferHeight(), false);
@@ -69,7 +69,7 @@ public class Framebuffer {
 
     public void updateColorMap(SetColorMapEntries update) {
         for (int i = 0; i < update.getColors().size(); i++) {
-            colorMap.put((long) i + update.getFirstColor(), update.getColors().get(i));
+           colorMap.put(Long.valueOf(i + update.getFirstColor()), update.getColors().get(i));
         }
     }
 

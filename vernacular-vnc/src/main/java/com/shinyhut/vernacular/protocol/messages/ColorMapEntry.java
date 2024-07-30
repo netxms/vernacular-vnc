@@ -35,4 +35,10 @@ public class ColorMapEntry {
         int blue = dataInput.readUnsignedShort();
         return new ColorMapEntry(red, green, blue);
     }
+
+    @Override
+    public String toString()
+    {
+       return "ColorMapEntry [red=" + red + ", green=" + green + ", blue=" + blue + "]";
+    }
 }
