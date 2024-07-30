@@ -68,7 +68,6 @@ public class TightRenderer implements Renderer
                processSolidColorRectangle(dataInput, destination, rect);
                break;
             case SUBENCODING_JPEG:
-               System.err.println("JPEG rectangle!!!");
                processJpegRectangle(dataInput, destination, rect);
                break;
             default:
@@ -366,7 +365,6 @@ public class TightRenderer implements Renderer
     */
    private void read16BitPalette(DataInput dataInput, int[] palette, int numColors) throws IOException
    {
-      System.out.println(">>> " + pixelFormat);
       if (pixelFormat.isBigEndian())
       {
          for(int i = 0; i < numColors; i++)
