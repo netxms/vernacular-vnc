@@ -22,6 +22,7 @@ import static com.shinyhut.vernacular.protocol.messages.Encoding.EXTENDED_CLIPBO
 import static com.shinyhut.vernacular.protocol.messages.Encoding.HEXTILE;
 import static com.shinyhut.vernacular.protocol.messages.Encoding.RAW;
 import static com.shinyhut.vernacular.protocol.messages.Encoding.RRE;
+import static com.shinyhut.vernacular.protocol.messages.Encoding.TIGHT;
 import static com.shinyhut.vernacular.protocol.messages.Encoding.ZLIB;
 
 public class Initializer {
@@ -56,6 +57,10 @@ public class Initializer {
 
         List<Encoding> encodings = new ArrayList<>();
 
+       if (config.isEnableTightEncoding()) {
+           encodings.add(TIGHT);
+       }
+        
         if (config.isEnableZLibEncoding()) {
             encodings.add(ZLIB);
         }
@@ -90,5 +95,4 @@ public class Initializer {
 
         session.setPixelFormat(pixelFormat);
     }
-
 }

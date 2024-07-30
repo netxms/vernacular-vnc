@@ -89,7 +89,15 @@ public class PixelFormat implements Encodable {
         dataOutput.write(new byte[3]);
     }
 
-    public static PixelFormat decode(InputStream in) throws IOException {
+    @Override
+    public String toString()
+    {
+       return "PixelFormat [bitsPerPixel=" + bitsPerPixel + ", depth=" + depth + ", bigEndian=" + bigEndian + ", trueColor=" + trueColor + ", redMax=" + redMax + ", greenMax=" + greenMax +
+             ", blueMax=" + blueMax + ", redShift=" + redShift + ", greenShift=" + greenShift + ", blueShift=" + blueShift + "]";
+    }
+
+    public static PixelFormat decode(InputStream in) throws IOException
+    {
         DataInputStream dataInput = new DataInputStream(in);
         int bpp = dataInput.readUnsignedByte();
         int depth = dataInput.readUnsignedByte();

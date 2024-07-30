@@ -4,7 +4,9 @@ import static java.lang.String.format;
 
 public class InvalidMessageException extends VncException {
 
-    private final String messageType;
+   private static final long serialVersionUID = 1L;
+   
+   private final String messageType;
 
     public InvalidMessageException(String messageType) {
         super(format("The server sent an invalid '%s' message", messageType));

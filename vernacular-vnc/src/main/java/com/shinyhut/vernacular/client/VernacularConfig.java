@@ -30,6 +30,7 @@ public class VernacularConfig {
     private boolean enableRreEncoding = true;
     private boolean enableHextileEncoding = true;
     private boolean enableZLibEncoding = false;
+    private boolean enableTightEncoding = true;
     private final Map<MessageHeaderFlags, Integer> maxSizePerFormat = new EnumMap<>(MessageHeaderFlags.class);
 
     public Supplier<String> getUsernameSupplier() {
@@ -251,7 +252,7 @@ public class VernacularConfig {
     public boolean isEnableZLibEncoding() {
         return enableZLibEncoding;
     }
-
+    
     /**
      * Enable or disable the ZLIB video encoding. This encoding is disabled by default because it is very expensive
      * in terms of CPU usage, but it may be useful in situations where you are bandwidth constrained.
@@ -261,6 +262,19 @@ public class VernacularConfig {
         this.enableZLibEncoding = enableZLibEncoding;
     }
 
+    public boolean isEnableTightEncoding() {
+       return enableTightEncoding;
+   }
+
+   /**
+    * Enable or disable the Tight video encoding
+    * 
+    * @param enableTightEncoding enable or disable the Tight video encoding
+    */
+   public void setEnableTightEncoding(boolean enableTightEncoding) {
+       this.enableTightEncoding = enableTightEncoding;
+   }
+    
     public Map<MessageHeaderFlags, Integer> getMaxSizePerFormat() {
         return maxSizePerFormat;
     }

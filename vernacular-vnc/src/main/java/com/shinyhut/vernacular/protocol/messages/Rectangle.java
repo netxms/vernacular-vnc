@@ -52,4 +52,10 @@ public class Rectangle {
         Encoding encoding = Encoding.resolve(encodingType);
         return new Rectangle(x, y, width, height, encoding);
     }
+
+    @Override
+    public String toString()
+    {
+       return "Rectangle [x=" + x + ", y=" + y + ", width=" + width + ", height=" + height + ", encoding=" + encoding + "]";
+    }
 }

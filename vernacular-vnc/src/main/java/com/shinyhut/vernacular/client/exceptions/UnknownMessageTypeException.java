@@ -3,8 +3,8 @@ package com.shinyhut.vernacular.client.exceptions;
 import static java.lang.String.format;
 
 public class UnknownMessageTypeException extends VncException {
-
-    private final int messageType;
+   private static final long serialVersionUID = 1L;
+   private final int messageType;
 
     public int getMessageType() {
         return messageType;

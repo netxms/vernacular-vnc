@@ -33,6 +33,7 @@ public class Framebuffer {
         renderers.put(RRE, new RRERenderer(pixelDecoder, session.getPixelFormat()));
         renderers.put(HEXTILE, new HextileRenderer(rawRenderer, pixelDecoder, session.getPixelFormat()));
         renderers.put(ZLIB, new ZLibRenderer(rawRenderer));
+        renderers.put(TIGHT, new TightRenderer(session.getPixelFormat(), pixelDecoder));
         cursorRenderer = new CursorRenderer(rawRenderer);
 
         frame = new ImageBuffer(session.getFramebufferWidth(), session.getFramebufferHeight(), false);
