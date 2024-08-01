@@ -34,6 +34,13 @@
         <url>http://github.com/netxms/vernacular-vnc/tree/master</url>
     </scm>
 
+   <distributionManagement>
+      <repository>
+          <id>ossrh</id>
+          <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+      </repository>
+   </distributionManagement>
+
     <properties>
         <maven.compiler.target>11</maven.compiler.target>
         <maven.compiler.source>11</maven.compiler.source>
@@ -157,7 +164,7 @@
 
     <profiles>
         <profile>
-            <id>release</id>
+            <id>publish</id>
             <build>
                 <plugins>
                     <plugin>
