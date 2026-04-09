@@ -6,7 +6,7 @@
     <groupId>org.netxms</groupId>
     <artifactId>vncviewer</artifactId>
     <packaging>jar</packaging>
-    <version>1.17</version>
+    <version>1.18</version>
 
     <name>vncviewer</name>
     <description>Test viewer application for NetXMS fork of vernacular-vnc.</description>

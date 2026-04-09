@@ -3,7 +3,9 @@ package com.netxms.vernacular;
 import com.shinyhut.vernacular.client.VernacularClient;
 import com.shinyhut.vernacular.client.VernacularConfig;
 import com.shinyhut.vernacular.client.rendering.ImageBuffer;
+import com.shinyhut.vernacular.utils.KeySyms;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.AncestorEvent;
 import javax.swing.event.AncestorListener;
@@ -12,6 +14,8 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 
 import static com.shinyhut.vernacular.client.rendering.ColorDepth.*;
 import static java.awt.BorderLayout.CENTER;
@@ -133,14 +137,16 @@ public class VernacularViewer extends JFrame {
             @Override
             public void keyPressed(KeyEvent e) {
                 if (connected()) {
-                    client.handleKeyEvent(e);
+                    KeySyms.map(e.getKeyCode(), e.getKeyChar(), e.isShiftDown())
+                            .ifPresent(k -> client.updateKey(k, true));
                 }
             }
 
             @Override
             public void keyReleased(KeyEvent e) {
                 if (connected()) {
-                    client.handleKeyEvent(e);
+                    KeySyms.map(e.getKeyCode(), e.getKeyChar(), e.isShiftDown())
+                            .ifPresent(k -> client.updateKey(k, false));
                 }
             }
         });
@@ -226,6 +232,20 @@ public class VernacularViewer extends JFrame {
         });
         config.setMousePointerUpdateListener((x, y, imageBuffer) -> {
             this.setCursor(getDefaultToolkit().createCustomCursor(bufferToImage(imageBuffer), new Point(x, y), "vnc"));
+        });
+        config.setJpegDecoder((data, w, h) -> {
+            BufferedImage img = ImageIO.read(new ByteArrayInputStream(data));
+            if (img == null)
+            {
+                throw new IOException("Failed to decode JPEG data");
+            }
+            if (img.getWidth() != w || img.getHeight() != h)
+            {
+                throw new IOException("JPEG image dimensions (" + img.getWidth() + "x" + img.getHeight() + ") do not match expected size (" + w + "x" + h + ")");
+            }
+            int[] pixels = new int[w * h];
+            img.getRGB(0, 0, w, h, pixels, 0, w);
+            return pixels;
         });
         config.setBellListener(v -> getDefaultToolkit().beep());
         config.setRemoteClipboardListener(t -> getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(t), null));

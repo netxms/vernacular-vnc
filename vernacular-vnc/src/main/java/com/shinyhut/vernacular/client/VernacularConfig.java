@@ -2,6 +2,7 @@ package com.shinyhut.vernacular.client;
 
 import com.shinyhut.vernacular.client.exceptions.VncException;
 import com.shinyhut.vernacular.client.rendering.ColorDepth;
+import com.shinyhut.vernacular.client.rendering.JpegDecoder;
 import com.shinyhut.vernacular.protocol.messages.MessageHeaderFlags;
 import com.shinyhut.vernacular.client.rendering.ImageBuffer;
 
@@ -31,6 +32,7 @@ public class VernacularConfig {
     private boolean enableHextileEncoding = true;
     private boolean enableZLibEncoding = false;
     private boolean enableTightEncoding = true;
+    private JpegDecoder jpegDecoder;
     private final Map<MessageHeaderFlags, Integer> maxSizePerFormat = new EnumMap<>(MessageHeaderFlags.class);
 
     public Supplier<String> getUsernameSupplier() {
@@ -275,6 +277,20 @@ public class VernacularConfig {
        this.enableTightEncoding = enableTightEncoding;
    }
     
+    public JpegDecoder getJpegDecoder() {
+        return jpegDecoder;
+    }
+
+    /**
+     * Sets the JPEG decoder used for Tight encoding JPEG sub-rectangles.
+     * Must be set before connecting if Tight encoding is enabled and the server uses JPEG.
+     *
+     * @param jpegDecoder a platform-specific JPEG decoder implementation
+     */
+    public void setJpegDecoder(JpegDecoder jpegDecoder) {
+        this.jpegDecoder = jpegDecoder;
+    }
+
     public Map<MessageHeaderFlags, Integer> getMaxSizePerFormat() {
         return maxSizePerFormat;
     }

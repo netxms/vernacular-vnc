@@ -16,9 +16,9 @@ Vernacular is also available through Maven:
 ```xml
 <dependencies>
     <dependency>
-        <groupId>com.shinyhut</groupId>
-        <artifactId>vernacular</artifactId>
-        <version>1.14</version>
+        <groupId>org.netxms</groupId>
+        <artifactId>vernacular-vnc</artifactId>
+        <version>1.18</version>
     </dependency>
 </dependencies>
 ```
@@ -30,9 +30,36 @@ repositories {
 }
 
 dependencies {
-    compile 'com.shinyhut:vernacular:1.14'
+    compile 'org.netxms:vernacular-vnc:1.18'
 }
 ```
+
+## Upgrading to 1.18
+
+Version 1.18 removes all `java.awt` dependencies from the core library, making it usable on
+Android and other non-AWT platforms. This introduces two breaking changes:
+
+- `VernacularClient.handleKeyEvent(KeyEvent)` has been removed. Use `updateKey(int keySym, boolean pressed)` or `type(int keySym)` / `type(String text)` instead. Callers that need to translate AWT `KeyEvent` objects to X11 keysyms can use `KeySyms.map(keyCode, keyChar, shiftDown)`.
+
+- If the VNC server uses Tight encoding with JPEG sub-rectangles, you must now provide a `JpegDecoder` via `config.setJpegDecoder(...)`. Without it, JPEG sub-rectangles will throw an exception. On desktop (AWT) platforms:
+
+```java
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import javax.imageio.ImageIO;
+
+config.setJpegDecoder((data, w, h) -> {
+    BufferedImage img = ImageIO.read(new ByteArrayInputStream(data));
+    if (img == null) {
+        throw new IOException("Failed to decode JPEG data");
+    }
+    int[] pixels = new int[w * h];
+    img.getRGB(0, 0, w, h, pixels, 0, w);
+    return pixels;
+});
+```
+
+On Android, use `BitmapFactory` instead of `ImageIO`.
 
 ## Usage
 
@@ -45,6 +72,7 @@ package com.shinyhut.vernacular;
 import com.shinyhut.vernacular.client.VernacularClient;
 import com.shinyhut.vernacular.client.VernacularConfig;
 import com.shinyhut.vernacular.client.rendering.ColorDepth;
+import com.shinyhut.vernacular.client.rendering.ImageBuffer;
 
 public class VernacularDemo {
 
@@ -71,11 +99,10 @@ public class VernacularDemo {
         config.setRemoteClipboardListener(text -> System.out.println(String.format("Received copied text: %s", text)));
 
         // Receive screen updates from the remote host
-        // The 'image' parameter is a java.awt.Image containing a current snapshot of the remote desktop
         // Expect this event to be triggered several times per second
         config.setScreenUpdateListener(image -> {
-            int width = image.getWidth(null);
-            int height = image.getHeight(null);
+            int width = image.getWidth();
+            int height = image.getHeight();
             System.out.println(String.format("Received a %dx%d screen update", width, height));
         });
 
@@ -108,4 +135,4 @@ public class VernacularDemo {
 }
 ```
 
-For a more realistic example, see [Vernacular Viewer](https://github.com/shinyhut/vernacular-vnc/blob/master/src/main/java/com/shinyhut/vernacular/VernacularViewer.java) in the source distribution, which demonstrates how to use Vernacular to build a working remote desktop application.
+For a more realistic example, see [Vernacular Viewer](viewer/src/main/java/com/netxms/vernacular/VernacularViewer.java) in the source distribution, which demonstrates how to use Vernacular to build a working remote desktop application.

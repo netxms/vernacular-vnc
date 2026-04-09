@@ -6,7 +6,7 @@
     <groupId>org.netxms</groupId>
     <artifactId>vernacular-vnc</artifactId>
     <packaging>jar</packaging>
-    <version>1.17</version>
+    <version>1.18</version>
 
     <name>vernacular-vnc</name>
     <description>A pure Java VNC client library and viewer application (NetXMS fork).</description>

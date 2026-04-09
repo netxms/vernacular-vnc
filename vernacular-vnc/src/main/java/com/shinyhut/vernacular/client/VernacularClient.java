@@ -4,16 +4,13 @@ import com.shinyhut.vernacular.client.exceptions.UnexpectedVncException;
 import com.shinyhut.vernacular.client.exceptions.VncException;
 import com.shinyhut.vernacular.protocol.handshaking.Handshaker;
 import com.shinyhut.vernacular.protocol.initialization.Initializer;
-import com.shinyhut.vernacular.utils.KeySyms;
 
-import java.awt.event.KeyEvent;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
-import static java.awt.event.KeyEvent.*;
 import static java.util.stream.IntStream.range;
 
 public class VernacularClient {
@@ -169,28 +166,6 @@ public class VernacularClient {
     }
 
     /**
-     * Presses, releases or 'types' the key represented by the specified KeyEvent.
-     * <p>
-     * The event type should be one of KEY_PRESSED, KEY_RELEASED or KEY_TYPED. All other event types are ignored.
-     *
-     * @param event The KeyEvent to handle
-     * @see java.awt.event.KeyEvent KeyEvent
-     */
-    public void handleKeyEvent(KeyEvent event) {
-        KeySyms.map(event.getKeyCode(), event.getKeyChar(), event.isShiftDown()).ifPresent(k -> {
-            switch (event.getID()) {
-                case KEY_PRESSED:
-                case KEY_RELEASED:
-                    updateKey(k, event.getID() == KEY_PRESSED);
-                    break;
-                case KEY_TYPED:
-                    type(k);
-                    break;
-            }
-        });
-    }
-
-    /**
      * Updates the status (pressed or not pressed) of the key represented by the specified KeySym
      * <p>
      * For a complete list of KeySyms, see https://cgit.freedesktop.org/xorg/proto/x11proto/plain/keysymdef.h
@@ -237,9 +212,9 @@ public class VernacularClient {
                 .map(c -> {
                     switch (c) {
                         case '\n':
-                            return KeySyms.forKeyCode(VK_ENTER).get();
+                            return 0xff0d; // X11 keysym for Enter
                         case '\t':
-                            return KeySyms.forKeyCode(VK_TAB).get();
+                            return 0xff09; // X11 keysym for Tab
                         default:
                             return c;
                     }

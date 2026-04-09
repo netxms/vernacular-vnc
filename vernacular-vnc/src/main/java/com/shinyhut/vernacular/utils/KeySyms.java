@@ -4,9 +4,39 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static java.awt.event.KeyEvent.*;
-
 public class KeySyms {
+
+    private static final int VK_BACK_SPACE = 0x08;
+    private static final int VK_TAB = 0x09;
+    private static final int VK_ENTER = 0x0A;
+    private static final int VK_ESCAPE = 0x1B;
+    private static final int VK_SHIFT = 0x10;
+    private static final int VK_CONTROL = 0x11;
+    private static final int VK_ALT = 0x12;
+    private static final int VK_PAGE_UP = 0x21;
+    private static final int VK_PAGE_DOWN = 0x22;
+    private static final int VK_END = 0x23;
+    private static final int VK_HOME = 0x24;
+    private static final int VK_LEFT = 0x25;
+    private static final int VK_UP = 0x26;
+    private static final int VK_RIGHT = 0x27;
+    private static final int VK_DOWN = 0x28;
+    private static final int VK_F1 = 0x70;
+    private static final int VK_F2 = 0x71;
+    private static final int VK_F3 = 0x72;
+    private static final int VK_F4 = 0x73;
+    private static final int VK_F5 = 0x74;
+    private static final int VK_F6 = 0x75;
+    private static final int VK_F7 = 0x76;
+    private static final int VK_F8 = 0x77;
+    private static final int VK_F9 = 0x78;
+    private static final int VK_F10 = 0x79;
+    private static final int VK_F11 = 0x7A;
+    private static final int VK_F12 = 0x7B;
+    private static final int VK_DELETE = 0x7F;
+    private static final int VK_INSERT = 0x9B;
+    private static final int VK_META = 0x9D;
+    private static final char CHAR_UNDEFINED = 0xFFFF;
 
     private static final Map<Integer, Integer> KEYCODES = new ConcurrentHashMap<>();
     private static final Map<Character, Integer> CONTROL_CHARACTERS = new ConcurrentHashMap<>();

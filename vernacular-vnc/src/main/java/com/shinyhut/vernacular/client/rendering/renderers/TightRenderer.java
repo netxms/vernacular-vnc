@@ -1,7 +1,5 @@
 package com.shinyhut.vernacular.client.rendering.renderers;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -10,11 +8,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
-import javax.imageio.ImageIO;
 import com.shinyhut.vernacular.client.exceptions.InvalidTightEncodingException;
 import com.shinyhut.vernacular.client.exceptions.UnexpectedVncException;
 import com.shinyhut.vernacular.client.exceptions.VncException;
 import com.shinyhut.vernacular.client.rendering.ImageBuffer;
+import com.shinyhut.vernacular.client.rendering.JpegDecoder;
 import com.shinyhut.vernacular.protocol.messages.ColorMapEntry;
 import com.shinyhut.vernacular.protocol.messages.PixelFormat;
 import com.shinyhut.vernacular.protocol.messages.Rectangle;
@@ -34,6 +32,7 @@ public class TightRenderer implements Renderer
 
    private PixelFormat pixelFormat;
    private Map<Long, ColorMapEntry> colorMap;
+   private JpegDecoder jpegDecoder;
    private int redShift;
    private int greenShift;
    private int blueShift;
@@ -42,10 +41,11 @@ public class TightRenderer implements Renderer
    private int blueMax;
    private Inflater[] inflaters = new Inflater[4];
 
-   public TightRenderer(PixelFormat pixelFormat, Map<Long, ColorMapEntry> colorMap)
+   public TightRenderer(PixelFormat pixelFormat, Map<Long, ColorMapEntry> colorMap, JpegDecoder jpegDecoder)
    {
       this.pixelFormat = pixelFormat;
       this.colorMap = colorMap;
+      this.jpegDecoder = jpegDecoder;
 
       redShift = pixelFormat.getRedShift();
       greenShift = pixelFormat.getGreenShift();
@@ -136,23 +136,33 @@ public class TightRenderer implements Renderer
     */
    private void processJpegRectangle(DataInput dataInput, ImageBuffer destination, Rectangle rect) throws IOException, VncException
    {
+      if (jpegDecoder == null)
+      {
+         throw new UnexpectedVncException("No JPEG decoder configured");
+      }
       int length = readCompactLength(dataInput);
       byte[] data = new byte[length];
       dataInput.readFully(data);
-      BufferedImage image = ImageIO.read(new ByteArrayInputStream(data));
-      if ((image.getWidth() == rect.getWidth()) && (image.getHeight() == rect.getHeight()))
+      int[] pixels;
+      try
       {
-         for(int y = 0, dy = rect.getY(); y < image.getHeight(); y++, dy++)
-         {
-            for(int x = 0, dx = rect.getX(); x < image.getWidth(); x++, dx++)
-            {
-               destination.set(dx, dy, image.getRGB(x, y));
-            }
-         }
+         pixels = jpegDecoder.decode(data, rect.getWidth(), rect.getHeight());
       }
-      else
+      catch(RuntimeException e)
+      {
+         throw new UnexpectedVncException("JPEG decoder failed: " + e.getMessage(), e);
+      }
+      if (pixels.length != rect.getWidth() * rect.getHeight())
       {
          throw new InvalidTightEncodingException("JPEG image size does not match rectangle size");
+      }
+      int i = 0;
+      for(int y = 0, dy = rect.getY(); y < rect.getHeight(); y++, dy++)
+      {
+         for(int x = 0, dx = rect.getX(); x < rect.getWidth(); x++, dx++)
+         {
+            destination.set(dx, dy, pixels[i++]);
+         }
       }
    }
 
