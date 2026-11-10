@@ -494,9 +494,29 @@ public class VernacularViewer extends JFrame {
     }
 
     public static void main(String[] args) {
+        String host = null;
+        int port = 5900;
+        if (args.length > 0) {
+            int separator = args[0].lastIndexOf(':');
+            host = separator < 0 ? args[0] : args[0].substring(0, separator);
+            try {
+                if (separator >= 0) {
+                    port = parseInt(args[0].substring(separator + 1));
+                }
+            } catch (NumberFormatException e) {
+                System.err.println("Usage: VernacularViewer [host[:port]]");
+                System.exit(1);
+            }
+        }
+
+        String initialHost = host;
+        int initialPort = port;
         invokeLater(() -> {
             VernacularViewer viewer = new VernacularViewer();
             viewer.setVisible(true);
+            if (initialHost != null) {
+                viewer.connect(initialHost, initialPort);
+            }
         });
     }
 
