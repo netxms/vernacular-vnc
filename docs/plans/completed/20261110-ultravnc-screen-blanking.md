@@ -35,19 +35,20 @@ New message `SetServerInput(boolean disabled)` implementing `Encodable`. New `Ve
 
 The startup spec drives `start(Socket)` with a Spock `Stub(Socket)`. The input is a canned server stream: `RFB 003.008`, one security type None, SecurityResult OK, and a ServerInit. Output goes to a `ByteArrayOutputStream`. Use a real `VernacularConfig`, because a mocked one returns 0 FPS and `ClientEventHandler` divides by FPS. Call `client.stop()` in cleanup.
 
-- [ ] `SetServerInput` encodes `[9, 1, 0, 0]` / `[9, 0, 0, 0]` (Spock spec in the style of `KeyEventTest`)
-- [ ] with `blankRemoteScreen` set, `start(Socket)` writes `[9, 1, 0, 0]` right after `SetEncodings`; with it unset, no type-9 message is written (Spock spec on `VernacularClient`)
-- [ ] `VernacularClient.setBlankRemoteScreen` sends the message on a running client and routes `IOException` to `handleError`
-- [ ] both poms and the README dependency snippets at 1.19
-- [ ] `JAVA_HOME=$(mise where java@17) mvn -q -f vernacular-vnc/pom.xml package` passes (runs tests and javadoc)
+- [x] `SetServerInput` encodes `[9, 1, 0, 0]` / `[9, 0, 0, 0]` (Spock spec in the style of `KeyEventTest`)
+- [x] with `blankRemoteScreen` set, `start(Socket)` writes `[9, 1, 0, 0]` right after `SetEncodings`; with it unset, no type-9 message is written (Spock spec on `VernacularClient`)
+- [x] `VernacularClient.setBlankRemoteScreen` sends the message on a running client and routes `IOException` to `handleError`
+- [x] both poms and the README dependency snippets at 1.19
+- [x] `JAVA_HOME=$(mise where java@17) mvn -q -f vernacular-vnc/pom.xml package` passes (runs tests and javadoc)
+- ➕ the canned server stream has to deliver the version line as its own chunk: `ProtocolVersion.decode` reads through a `BufferedReader`, which would swallow the rest of a fully-available stream. A real server waits for the client's version, so production is unaffected.
 
 ### Task 2: Viewer checkbox
 Layers: Swing test viewer.
 
 Options-menu checkbox "Blank Remote Screen (UltraVNC)" after "Use Local Cursor", with a tooltip saying it disables the remote's local keyboard/mouse and blanks its monitor if the server allows it. Unlike the other Options items it stays enabled while connected, so `setMenuState()` leaves it alone. The checkbox shows the requested state, not the verified server state.
 
-- [ ] toggling updates the config; when connected it also calls `client.setBlankRemoteScreen`
-- [ ] `JAVA_HOME=$(mise where java@17) mvn -q -f vernacular-vnc/pom.xml install && JAVA_HOME=$(mise where java@17) mvn -q -f viewer/pom.xml package` builds
+- [x] toggling updates the config; when connected it also calls `client.setBlankRemoteScreen`
+- [x] `JAVA_HOME=$(mise where java@17) mvn -q -f vernacular-vnc/pom.xml install && JAVA_HOME=$(mise where java@17) mvn -q -f viewer/pom.xml package` builds
 
 ## Post-Completion
 Manual verification against a Windows UltraVNC server with "Enable Blank Monitor on Viewer Request" on:

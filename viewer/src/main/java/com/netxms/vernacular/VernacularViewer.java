@@ -47,6 +47,7 @@ public class VernacularViewer extends JFrame {
     private JMenuItem bpp16TrueColorMenuItem;
     private JMenuItem bpp24TrueColorMenuItem;
     private JMenuItem localCursorMenuItem;
+    private JCheckBoxMenuItem blankRemoteScreenMenuItem;
 
     private JMenu encodingsMenu;
     private JMenuItem copyrectMenuItem;
@@ -298,6 +299,17 @@ public class VernacularViewer extends JFrame {
         localCursorMenuItem = new JCheckBoxMenuItem("Use Local Cursor", true);
         localCursorMenuItem.addActionListener(event -> config.setUseLocalMousePointer(localCursorMenuItem.isSelected()));
 
+        blankRemoteScreenMenuItem = new JCheckBoxMenuItem("Blank Remote Screen (UltraVNC)", false);
+        blankRemoteScreenMenuItem.setToolTipText("Requests disabling the remote computer's local keyboard/mouse " +
+                "and blanking its monitor if the server allows it.");
+        blankRemoteScreenMenuItem.addActionListener(event -> {
+            boolean blank = blankRemoteScreenMenuItem.isSelected();
+            config.setBlankRemoteScreen(blank);
+            if (connected()) {
+                client.setBlankRemoteScreen(blank);
+            }
+        });
+
         copyrectMenuItem = new JCheckBoxMenuItem("COPYRECT", true);
         copyrectMenuItem.addActionListener(event -> config.setEnableCopyrectEncoding(copyrectMenuItem.isSelected()));
 
@@ -330,6 +342,7 @@ public class VernacularViewer extends JFrame {
         options.add(bpp16TrueColorMenuItem);
         options.add(bpp24TrueColorMenuItem);
         options.add(localCursorMenuItem);
+        options.add(blankRemoteScreenMenuItem);
         options.add(encodingsMenu);
         menu.add(file);
         menu.add(options);

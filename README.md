@@ -18,7 +18,7 @@ Vernacular is also available through Maven:
     <dependency>
         <groupId>org.netxms</groupId>
         <artifactId>vernacular-vnc</artifactId>
-        <version>1.18</version>
+        <version>1.19</version>
     </dependency>
 </dependencies>
 ```
@@ -30,7 +30,7 @@ repositories {
 }
 
 dependencies {
-    compile 'org.netxms:vernacular-vnc:1.18'
+    compile 'org.netxms:vernacular-vnc:1.19'
 }
 ```
 

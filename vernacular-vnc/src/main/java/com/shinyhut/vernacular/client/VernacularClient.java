@@ -70,6 +70,10 @@ public class VernacularClient {
             clientEventHandler = new ClientEventHandler(session, this::handleError);
             serverEventHandler = new ServerEventHandler(session, this::handleError);
 
+            if (config.isBlankRemoteScreen()) {
+                clientEventHandler.setServerInputDisabled(true);
+            }
+
             serverEventHandler.start();
             clientEventHandler.start();
         } catch (IOException e) {
@@ -231,6 +235,27 @@ public class VernacularClient {
         if (clientEventHandler != null) {
             try {
                 clientEventHandler.copyText(text);
+            } catch (IOException e) {
+                handleError(new UnexpectedVncException(e));
+            }
+        }
+    }
+
+    /**
+     * Asks an UltraVNC server to disable (true) or restore (false) its local keyboard and mouse, blanking or
+     * unblanking its monitor if the server allows it. Call only on a running client.
+     * <p>
+     * This affects the current connection only; the next {@link #start(Socket)} uses
+     * {@link VernacularConfig#isBlankRemoteScreen()} again. Only the viewer that disabled the server's input can
+     * restore it. Non-UltraVNC servers may close the connection on this message.
+     *
+     * @param blank true to disable input and blank the screen, false to restore them
+     * @see VernacularConfig#setBlankRemoteScreen(boolean)
+     */
+    public void setBlankRemoteScreen(boolean blank) {
+        if (clientEventHandler != null) {
+            try {
+                clientEventHandler.setServerInputDisabled(blank);
             } catch (IOException e) {
                 handleError(new UnexpectedVncException(e));
             }

@@ -32,6 +32,7 @@ public class VernacularConfig {
     private boolean enableHextileEncoding = true;
     private boolean enableZLibEncoding = false;
     private boolean enableTightEncoding = true;
+    private boolean blankRemoteScreen = false;
     private JpegDecoder jpegDecoder;
     private final Map<MessageHeaderFlags, Integer> maxSizePerFormat = new EnumMap<>(MessageHeaderFlags.class);
 
@@ -277,6 +278,30 @@ public class VernacularConfig {
        this.enableTightEncoding = enableTightEncoding;
    }
     
+    public boolean isBlankRemoteScreen() {
+        return blankRemoteScreen;
+    }
+
+    /**
+     * Ask the server, right after connecting, to disable its local keyboard and mouse and blank its monitor.
+     * <p>
+     * This is an UltraVNC extension (rfbSetServerInput). Other servers do not know the message and may close the
+     * connection, so only enable this for UltraVNC servers.
+     * <p>
+     * The monitor is blanked only if the server has "Enable Blank Monitor on Viewer Request" turned on and
+     * "BlankInputsOnly" turned off; otherwise only local input is disabled. The server does not confirm the request,
+     * and ignores it for view-only connections. It restores local input and the monitor when this client
+     * disconnects.
+     * <p>
+     * Default: false
+     *
+     * @param blankRemoteScreen request input disabling and screen blanking after connecting
+     * @see VernacularClient#setBlankRemoteScreen(boolean)
+     */
+    public void setBlankRemoteScreen(boolean blankRemoteScreen) {
+        this.blankRemoteScreen = blankRemoteScreen;
+    }
+
     public JpegDecoder getJpegDecoder() {
         return jpegDecoder;
     }

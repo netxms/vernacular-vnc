@@ -9,6 +9,7 @@ import com.shinyhut.vernacular.protocol.messages.Encodable;
 import com.shinyhut.vernacular.protocol.messages.FramebufferUpdateRequest;
 import com.shinyhut.vernacular.protocol.messages.KeyEvent;
 import com.shinyhut.vernacular.protocol.messages.PointerEvent;
+import com.shinyhut.vernacular.protocol.messages.SetServerInput;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -96,6 +97,10 @@ public class ClientEventHandler {
     void updateKey(int keySym, boolean pressed) throws IOException {
         KeyEvent message = new KeyEvent(keySym, pressed);
         sendMessage(message);
+    }
+
+    void setServerInputDisabled(boolean disabled) throws IOException {
+        sendMessage(new SetServerInput(disabled));
     }
 
     void sendClientCutTextCaps() throws IOException {
