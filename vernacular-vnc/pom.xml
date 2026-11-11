@@ -26,20 +26,25 @@
             <organization>ShinyHut Solutions Ltd</organization>
             <organizationUrl>http://www.shinyhut.com</organizationUrl>
         </developer>
+        <developer>
+            <id>alex.kirhenshtein</id>
+            <name>Alex Kirhenshtein</name>
+            <email>alk@netxms.org</email>
+            <organization>Raden Solutions</organization>
+            <organizationUrl>https://radensolutions.com</organizationUrl>
+        </developer>
     </developers>
 
     <scm>
-        <connection>scm:git:git://github.com/netxms/vernacular-vnc.git</connection>
-        <developerConnection>scm:git:ssh://github.com:netxms/vernacular-vnc.git</developerConnection>
-        <url>http://github.com/netxms/vernacular-vnc/tree/master</url>
+        <connection>scm:git:https://github.com/netxms/vernacular-vnc</connection>
+        <developerConnection>scm:git:ssh://github.com/netxms/vernacular-vnc.git</developerConnection>
+        <url>https://github.com/netxms/vernacular-vnc</url>
     </scm>
 
-   <distributionManagement>
-      <repository>
-          <id>ossrh</id>
-          <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-      </repository>
-   </distributionManagement>
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/netxms/vernacular-vnc/issues</url>
+    </issueManagement>
 
     <properties>
         <maven.compiler.target>11</maven.compiler.target>
@@ -79,13 +84,13 @@
         <dependency>
             <groupId>org.apache.groovy</groupId>
             <artifactId>groovy</artifactId>
-            <version>4.0.18</version>
+            <version>4.0.33</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>net.bytebuddy</groupId>
             <artifactId>byte-buddy</artifactId>
-            <version>1.14.12</version>
+            <version>1.18.17</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -164,13 +169,19 @@
 
     <profiles>
         <profile>
-            <id>publish</id>
+            <id>central</id>
+            <distributionManagement>
+                <repository>
+                    <id>central</id>
+                    <url>https://central.sonatype.com/api/v1/publisher</url>
+                </repository>
+            </distributionManagement>
             <build>
                 <plugins>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>3.2.4</version>
+                        <version>3.2.8</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
@@ -180,6 +191,17 @@
                                 </goals>
                             </execution>
                         </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>0.10.0</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                            <autoPublish>false</autoPublish>
+                            <waitUntil>published</waitUntil>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>
