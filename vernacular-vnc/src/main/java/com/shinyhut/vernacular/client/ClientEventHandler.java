@@ -67,19 +67,19 @@ public class ClientEventHandler {
             } finally {
                 running = false;
             }
-        });
+        }, "vernacular-framebuffer-requests");
 
         framebufferUpdateLoop.start();
     }
 
     void stop() {
         running = false;
-        try {
-            if (framebufferUpdateLoop != null) {
-                framebufferUpdateLoop.interrupt();
+        if (framebufferUpdateLoop != null && framebufferUpdateLoop != Thread.currentThread()) {
+            framebufferUpdateLoop.interrupt();
+            try {
                 framebufferUpdateLoop.join(1000);
+            } catch (InterruptedException ignored) {
             }
-        } catch (InterruptedException ignored) {
         }
     }
 

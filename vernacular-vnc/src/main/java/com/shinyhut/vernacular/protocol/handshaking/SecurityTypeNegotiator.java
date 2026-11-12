@@ -23,6 +23,8 @@ public class SecurityTypeNegotiator {
             return resolve(singletonList(serverSecurityType));
         } else {
             ServerSecurityTypes serverSecurityTypes = ServerSecurityTypes.decode(session.getInputStream());
+            // UltraVNC advertises type 17 to identify itself; it is not an authentication method we select.
+            session.setServerInputSupported(serverSecurityTypes.getSecurityTypes().contains(17));
             return resolve(serverSecurityTypes.getSecurityTypes());
         }
     }

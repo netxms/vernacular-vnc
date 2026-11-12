@@ -69,6 +69,11 @@ public class VernacularConfig {
 
     /**
      * Specifies a Consumer which will be passed any Exception which occurs during the VNC session.
+     * <p>
+     * Each connection is reported at most once: for the first failure, or with a
+     * {@link com.shinyhut.vernacular.client.exceptions.ConnectionClosedException} when the server closes it. By then
+     * the connection is already shut down and {@link VernacularClient#isRunning()} returns false. A connection ended
+     * by {@link VernacularClient#stop()} is not reported. The listener may run on one of the client's own threads.
      *
      * @param errorListener A Consumer which will receive any Exceptions which occur during the VNC session
      */
@@ -285,13 +290,13 @@ public class VernacularConfig {
     /**
      * Ask the server, right after connecting, to disable its local keyboard and mouse and blank its monitor.
      * <p>
-     * This is an UltraVNC extension (rfbSetServerInput). Other servers do not know the message and may close the
-     * connection, so only enable this for UltraVNC servers.
+     * This is an UltraVNC extension (rfbSetServerInput). It is sent only on a live connection whose server advertised
+     * security type 17 in its RFB 3.7/3.8 offer. Undetected servers, including RFB 3.3 servers, are silently ignored.
      * <p>
      * The monitor is blanked only if the server has "Enable Blank Monitor on Viewer Request" turned on and
      * "BlankInputsOnly" turned off; otherwise only local input is disabled. The server does not confirm the request,
-     * and ignores it for view-only connections. It restores local input and the monitor when this client
-     * disconnects.
+     * and ignores it for view-only connections. Only the viewer that disabled input can restore it. The server
+     * restores local input and the monitor when this client disconnects.
      * <p>
      * Default: false
      *

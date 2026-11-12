@@ -221,11 +221,11 @@ public class VernacularViewer extends JFrame {
     private void initialiseVernacularClient() {
         config = new VernacularConfig();
         config.setColorDepth(BPP_16_TRUE);
-        config.setErrorListener(e -> {
+        config.setErrorListener(e -> invokeLater(() -> {
             e.printStackTrace();
             showMessageDialog(this, e.getMessage(), "Error", ERROR_MESSAGE);
             resetUI();
-        });
+        }));
         config.setUsernameSupplier(this::showUsernameDialog);
         config.setPasswordSupplier(this::showPasswordDialog);
         config.setScreenUpdateListener(imageBuffer -> {

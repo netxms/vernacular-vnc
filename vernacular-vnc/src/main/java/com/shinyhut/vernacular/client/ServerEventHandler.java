@@ -1,5 +1,6 @@
 package com.shinyhut.vernacular.client;
 
+import com.shinyhut.vernacular.client.exceptions.ConnectionClosedException;
 import com.shinyhut.vernacular.client.exceptions.UnexpectedVncException;
 import com.shinyhut.vernacular.client.exceptions.UnknownMessageTypeException;
 import com.shinyhut.vernacular.client.exceptions.VncException;
@@ -35,8 +36,14 @@ public class ServerEventHandler {
 
         eventLoop = new Thread(() -> {
             try {
-                int messageType;
-                while (running && ((messageType = in.read()) != -1)) {
+                while (running) {
+                    int messageType = in.read();
+                    if (messageType == -1) {
+                        if (running) {
+                            errorHandler.accept(new ConnectionClosedException());
+                        }
+                        break;
+                    }
                     in.unread(messageType);
 
                     switch (messageType) {
@@ -77,18 +84,18 @@ public class ServerEventHandler {
             } finally {
                 running = false;
             }
-        });
+        }, "vernacular-server-events");
 
         eventLoop.start();
     }
 
     void stop() {
         running = false;
-        try {
-            if (eventLoop != null) {
+        if (eventLoop != null && eventLoop != Thread.currentThread()) {
+            try {
                 eventLoop.join(1000);
+            } catch (InterruptedException ignored) {
             }
-        } catch (InterruptedException ignored) {
         }
     }
 

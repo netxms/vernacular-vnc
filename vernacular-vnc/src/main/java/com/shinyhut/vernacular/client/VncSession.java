@@ -19,6 +19,7 @@ public class VncSession {
     private ProtocolVersion protocolVersion;
     private ServerInit serverInit;
     private PixelFormat pixelFormat;
+    private volatile boolean serverInputSupported;
 
     private volatile int framebufferWidth;
     private volatile int framebufferHeight;
@@ -51,6 +52,14 @@ public class VncSession {
 
     public void setProtocolVersion(ProtocolVersion protocolVersion) {
         this.protocolVersion = protocolVersion;
+    }
+
+    public boolean isServerInputSupported() {
+        return serverInputSupported;
+    }
+
+    public void setServerInputSupported(boolean serverInputSupported) {
+        this.serverInputSupported = serverInputSupported;
     }
 
     public ServerInit getServerInit() {

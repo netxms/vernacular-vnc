@@ -20,10 +20,9 @@ public class VernacularClient {
 
     private final VernacularConfig config;
 
-    private VncSession session;
-    private ClientEventHandler clientEventHandler;
-    private ServerEventHandler serverEventHandler;
+    private final Object lifecycleLock = new Object();
 
+    private volatile Connection connection;
     private volatile boolean running;
 
     /**
@@ -45,11 +44,14 @@ public class VernacularClient {
      * @throws IllegalStateException if the client is already running
      */
     public void start(String host, int port) {
+        Socket socket;
         try {
-            start(new Socket(host, port));
+            socket = new Socket(host, port);
         } catch (IOException e) {
-            handleError(new UnexpectedVncException(e));
+            notifyErrorListeners(new UnexpectedVncException(e));
+            return;
         }
+        start(socket);
     }
 
     /**
@@ -59,43 +61,39 @@ public class VernacularClient {
      * @throws IllegalStateException if the client is already running
      */
     public void start(Socket socket) {
-        if (running) {
-            throw new IllegalStateException("VNC Client is already running");
+        Connection connection = new Connection(socket);
+        synchronized (lifecycleLock) {
+            if (running) {
+                throw new IllegalStateException("VNC Client is already running");
+            }
+            this.connection = connection;
+            running = true;
         }
 
-        running = true;
-
         try {
-            createSession(socket);
-            clientEventHandler = new ClientEventHandler(session, this::handleError);
-            serverEventHandler = new ServerEventHandler(session, this::handleError);
+            VncSession session = createSession(connection);
+            ClientEventHandler clientEventHandler = new ClientEventHandler(session, e -> terminate(connection, e));
+            ServerEventHandler serverEventHandler = new ServerEventHandler(session, e -> terminate(connection, e));
 
-            if (config.isBlankRemoteScreen()) {
+            if (config.isBlankRemoteScreen() && connection.isServerInputSupported()) {
                 clientEventHandler.setServerInputDisabled(true);
             }
 
-            serverEventHandler.start();
-            clientEventHandler.start();
+            connection.start(clientEventHandler, serverEventHandler);
         } catch (IOException e) {
-            handleError(new UnexpectedVncException(e));
+            terminate(connection, new UnexpectedVncException(e));
         } catch (VncException e) {
-            handleError(e);
+            terminate(connection, e);
         }
     }
 
     /**
-     * Stops the VNC client
+     * Stops the VNC client. The error listener is not called for a connection stopped this way.
      */
     public void stop() {
-        running = false;
-        if (serverEventHandler != null) {
-            serverEventHandler.stop();
-        }
-        if (clientEventHandler != null) {
-            clientEventHandler.stop();
-        }
-        if (session != null) {
-            session.kill();
+        Connection connection = this.connection;
+        if (connection != null) {
+            terminate(connection, null);
         }
     }
 
@@ -106,13 +104,7 @@ public class VernacularClient {
      * @param y The Y coordinate
      */
     public void moveMouse(int x, int y) {
-        if (clientEventHandler != null) {
-            try {
-                clientEventHandler.moveMouse(x, y);
-            } catch (IOException e) {
-                handleError(new UnexpectedVncException(e));
-            }
-        }
+        send(handler -> handler.moveMouse(x, y));
     }
 
     /**
@@ -129,13 +121,7 @@ public class VernacularClient {
      * @param pressed Is the mouse button currently 'pressed'?
      */
     public void updateMouseButton(int button, boolean pressed) {
-        if (clientEventHandler != null) {
-            try {
-                clientEventHandler.updateMouseButton(button, pressed);
-            } catch (IOException e) {
-                handleError(new UnexpectedVncException(e));
-            }
-        }
+        send(handler -> handler.updateMouseButton(button, pressed));
     }
 
     /**
@@ -178,13 +164,7 @@ public class VernacularClient {
      * @param pressed Was the key pressed (true) or released (false)?
      */
     public void updateKey(int keySym, boolean pressed) {
-        if (clientEventHandler != null) {
-            try {
-                clientEventHandler.updateKey(keySym, pressed);
-            } catch (IOException e) {
-                handleError(new UnexpectedVncException(e));
-            }
-        }
+        send(handler -> handler.updateKey(keySym, pressed));
     }
 
     /**
@@ -232,34 +212,45 @@ public class VernacularClient {
      * @param text The text to be copied to the remote clipboard
      */
     public void copyText(String text) {
-        if (clientEventHandler != null) {
-            try {
-                clientEventHandler.copyText(text);
-            } catch (IOException e) {
-                handleError(new UnexpectedVncException(e));
-            }
-        }
+        send(handler -> handler.copyText(text));
     }
 
     /**
      * Asks an UltraVNC server to disable (true) or restore (false) its local keyboard and mouse, blanking or
-     * unblanking its monitor if the server allows it. Call only on a running client.
+     * unblanking its monitor if the server allows it. Ignored when the connection is stopped or the server was not
+     * detected as UltraVNC by security type 17 in its RFB 3.7/3.8 offer. RFB 3.3 servers are never detected.
      * <p>
      * This affects the current connection only; the next {@link #start(Socket)} uses
      * {@link VernacularConfig#isBlankRemoteScreen()} again. Only the viewer that disabled the server's input can
-     * restore it. Non-UltraVNC servers may close the connection on this message.
+     * restore it. View-only connections are ignored by the server. Blanking requires the server's
+     * "Enable Blank Monitor on Viewer Request" setting and "BlankInputsOnly" turned off; otherwise only local input
+     * is disabled. The server does not confirm whether the request succeeded.
      *
      * @param blank true to disable input and blank the screen, false to restore them
      * @see VernacularConfig#setBlankRemoteScreen(boolean)
      */
     public void setBlankRemoteScreen(boolean blank) {
-        if (clientEventHandler != null) {
-            try {
-                clientEventHandler.setServerInputDisabled(blank);
-            } catch (IOException e) {
-                handleError(new UnexpectedVncException(e));
-            }
+        Connection connection = this.connection;
+        if (connection != null && connection.isServerInputSupported()) {
+            send(connection, handler -> handler.setServerInputDisabled(blank));
         }
+    }
+
+    /**
+     * Reports whether the live connection supports UltraVNC's SetServerInput extension. Valid once
+     * {@link #start(Socket)} or {@link #start(String, int)} returns; recalculated for each connection.
+     * <p>
+     * Detection requires security type 17 in the server's RFB 3.7/3.8 offer. RFB 3.3 and servers without that offer
+     * are not detected, and blanking requests to them are ignored. A detected server may still ignore requests for
+     * view-only connections. Only the viewer that disabled input can restore it, and monitor blanking depends on
+     * server settings. Support does not confirm that the monitor is blanked.
+     *
+     * @return true if the connection is live and its server was detected as UltraVNC, false otherwise
+     * @see #setBlankRemoteScreen(boolean)
+     */
+    public boolean isServerInputSupported() {
+        Connection connection = this.connection;
+        return connection != null && connection.isServerInputSupported();
     }
 
     /**
@@ -271,18 +262,47 @@ public class VernacularClient {
         return running;
     }
 
-    private void createSession(Socket socket) throws IOException, VncException {
-        InputStream in = new BufferedInputStream(socket.getInputStream());
-        OutputStream out = socket.getOutputStream();
-        session = new VncSession(config, in, out);
+    private VncSession createSession(Connection connection) throws IOException, VncException {
+        InputStream in = new BufferedInputStream(connection.socket.getInputStream());
+        OutputStream out = connection.socket.getOutputStream();
+        VncSession session = new VncSession(config, in, out);
+        connection.session = session;
 
         handshaker.handshake(session);
         initializer.initialise(session);
+        return session;
     }
 
-    private void handleError(VncException e) {
-        notifyErrorListeners(e);
-        stop();
+    private void send(ClientAction action) {
+        send(this.connection, action);
+    }
+
+    private void send(Connection connection, ClientAction action) {
+        ClientEventHandler handler = connection == null ? null : connection.clientEventHandler;
+        if (handler != null) {
+            try {
+                action.run(handler);
+            } catch (IOException e) {
+                terminate(connection, new UnexpectedVncException(e));
+            }
+        }
+    }
+
+    // Only the connection's first terminal event counts. It is shut down before the listener runs, so a listener that
+    // blocks, throws or reconnects this client can neither keep it alive nor stop its successor.
+    private void terminate(Connection connection, VncException error) {
+        if (!connection.markTerminated()) {
+            return;
+        }
+        synchronized (lifecycleLock) {
+            if (this.connection == connection) {
+                running = false;
+            }
+        }
+        connection.close();
+        if (error != null) {
+            notifyErrorListeners(error);
+        }
     }
 
     private void notifyErrorListeners(VncException e) {
@@ -291,4 +311,67 @@ public class VernacularClient {
         }
     }
 
+    @FunctionalInterface
+    private interface ClientAction {
+        void run(ClientEventHandler handler) throws IOException;
+    }
+
+    private static final class Connection {
+
+        private final Socket socket;
+        private volatile VncSession session;
+        private volatile ClientEventHandler clientEventHandler;
+        private ServerEventHandler serverEventHandler;
+        private volatile boolean terminated;
+
+        Connection(Socket socket) {
+            this.socket = socket;
+        }
+
+        boolean isServerInputSupported() {
+            VncSession session = this.session;
+            return !terminated && session != null && session.isServerInputSupported();
+        }
+
+        synchronized void start(ClientEventHandler clientEventHandler, ServerEventHandler serverEventHandler) {
+            if (terminated) {
+                return;
+            }
+            this.clientEventHandler = clientEventHandler;
+            this.serverEventHandler = serverEventHandler;
+            serverEventHandler.start();
+            clientEventHandler.start();
+        }
+
+        synchronized boolean markTerminated() {
+            if (terminated) {
+                return false;
+            }
+            terminated = true;
+            return true;
+        }
+
+        void close() {
+            ServerEventHandler serverEventHandler;
+            ClientEventHandler clientEventHandler;
+            synchronized (this) {
+                serverEventHandler = this.serverEventHandler;
+                clientEventHandler = this.clientEventHandler;
+            }
+            VncSession session = this.session;
+            if (session != null) {
+                session.kill();
+            }
+            try {
+                socket.close();
+            } catch (IOException ignored) {
+            }
+            if (serverEventHandler != null) {
+                serverEventHandler.stop();
+            }
+            if (clientEventHandler != null) {
+                clientEventHandler.stop();
+            }
+        }
+    }
 }
