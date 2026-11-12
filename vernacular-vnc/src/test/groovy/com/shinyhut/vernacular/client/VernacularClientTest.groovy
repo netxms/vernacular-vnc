@@ -362,6 +362,33 @@ class VernacularClientTest extends Specification {
         !client.running
     }
 
+    def "should close the socket start(host, port) opened when the client is already running"() {
+        given:
+        startLiveSession()
+        def listener = new ServerSocket(0)
+
+        when:
+        client.start('127.0.0.1', listener.localPort)
+
+        then:
+        thrown(IllegalStateException)
+
+        when:
+        def accepted = listener.accept()
+        accepted.soTimeout = 5000
+
+        then:
+        accepted.inputStream.read() == -1
+        errors.isEmpty()
+        client.running
+        !server.input.closed
+        newClientThreads().size() == 2
+
+        cleanup:
+        accepted?.close()
+        listener.close()
+    }
+
     def "should not let an old session's EOF stop a session reconnected from its listener"() {
         given:
         def nextServer = new FakeServer()

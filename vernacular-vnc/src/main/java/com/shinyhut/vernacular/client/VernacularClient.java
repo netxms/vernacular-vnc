@@ -51,7 +51,16 @@ public class VernacularClient {
             notifyErrorListeners(new UnexpectedVncException(e));
             return;
         }
-        start(socket);
+        try {
+            start(socket);
+        } catch (IllegalStateException e) {
+            try {
+                socket.close();
+            } catch (IOException closeFailure) {
+                e.addSuppressed(closeFailure);
+            }
+            throw e;
+        }
     }
 
     /**
